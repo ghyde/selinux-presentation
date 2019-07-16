@@ -1,0 +1,16 @@
+- name: change homedir permissions
+  file:
+    path: /home/vagrant
+    state: directory
+    owner: vagrant
+    group: vagrant
+    mode: '0711'
+    recurse: false
+
+- name: copy secret file
+  copy:
+    src: secrets.txt
+    dest: /home/vagrant/secrets.txt
+    owner: vagrant
+    group: vagrant
+    mode: '0644'
