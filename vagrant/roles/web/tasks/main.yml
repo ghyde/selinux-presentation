@@ -1,0 +1,43 @@
+---
+- name: disable firewall
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: false
+    masked: true
+
+- name: install web server
+  yum:
+    name: httpd
+    state: installed
+
+- name: start web server
+  systemd:
+    name: httpd
+    state: started
+    enabled: yes
+
+- name: configure web server
+  copy:
+    src: httpd.conf
+    dest: /etc/httpd/conf/httpd.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart_httpd
+
+- name: copy home page
+  copy:
+    src: index.html
+    dest: /var/www/html/index.html
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: copy shellshock script
+  copy:
+    src: shellshock.sh
+    dest: /var/www/cgi-bin/shellshock.cgi
+    owner: root
+    group: root
+    mode: '0755'

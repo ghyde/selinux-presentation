@@ -1,0 +1,85 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+SUGGESTED_PLUGINS = %w(vagrant-sshfs landrush)
+
+def message(name)
+  "#{name} plugin is not installed, run `vagrant plugin install #{name}` to install it."
+end
+SUGGESTED_PLUGINS.each { |plugin| print("note: " + message(plugin) + "\n") unless Vagrant.has_plugin?(plugin) }
+
+NETWORK_BASE = '192.168.50'
+INTEGRATION_START_SEGMENT = 20
+TLD = 'vm.local'
+
+sync_type = ENV['SYNC_TYPE'] || ''
+if sync_type == ''
+  if Vagrant.has_plugin?('vagrant-sshfs')
+    sync_type = 'sshfs'
+  else
+    sync_type = 'rsync'
+  end
+end
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7"
+
+  if Vagrant.has_plugin?('landrush')
+    config.landrush.enabled = true
+    config.landrush.tld = TLD
+    config.landrush.guest_redirect_dns = false
+  end
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.cpus = 1
+    vb.memory = 1024
+    provider_name = 'virtualbox'
+  end
+
+  config.vm.provider "libvirt" do |lv|
+    lv.cpus = 1
+    lv.memory = 1024
+    lv.driver = 'kvm'
+    provider_name = 'libvirt'
+  end
+
+  # Suppress the default sync in CentOS
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+  config.vm.synced_folder '.', '/home/vagrant/sync', disabled: true
+
+  # Configure eth0 via script. Will disable NetworkManager and enable legacy network daemon:
+  config.vm.provision "shell", path: "provision/setup.sh", args: [NETWORK_BASE]
+
+  config.vm.define "web" do |web|
+    web.vm.network :private_network, ip: "#{NETWORK_BASE}.#{INTEGRATION_START_SEGMENT + 0}"
+    web.vm.hostname = "web.#{TLD}"
+
+    web.vm.synced_folder "..", "/home/vagrant/sync", type: sync_type
+    web.vm.synced_folder ".vagrant", "/home/vagrant/.hidden", type: sync_type
+
+    ansible_groups = {
+      web: ["web"],
+      'all:vars': {
+        ansible_become: true,
+        ansible_ssh_user: 'vagrant',
+        top_level_domain: TLD,
+      },
+    }
+
+    ansible_host_vars = {
+      web: {
+        ansible_connection: 'local',
+      },
+    }
+
+    web.vm.provision :ansible_local do |ansible|
+      ansible.compatibility_mode = '2.0'
+      ansible.verbose = true
+      ansible.install = true
+      ansible.provisioning_path = '/home/vagrant/sync/vagrant'
+      ansible.playbook = '/home/vagrant/sync/vagrant/install.yaml'
+      ansible.groups = ansible_groups
+      ansible.host_vars = ansible_host_vars
+    end
+  end
+end
