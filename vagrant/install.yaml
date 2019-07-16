@@ -47,3 +47,4 @@
   hosts: web
   roles:
   - web
+  - bash

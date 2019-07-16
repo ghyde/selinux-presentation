@@ -1,0 +1,39 @@
+---
+- name: install required packages
+  yum:
+    name: "{{ item }} "
+    state: installed
+  loop:
+    - gcc
+
+- name:  download version of bash vulnerable to shellshock
+  unarchive:
+    src: https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz
+    dest: /tmp
+    remote_src: true
+
+- name: build from source
+  shell: ./configure && make
+  args:
+    chdir: /tmp/bash-4.3
+    creates: /tmp/bash-4.3/bash
+
+- name: copy vulnerable bash instance
+  copy:
+    src: /tmp/bash-4.3/bash
+    dest: /bin/bash_shellshock
+    remote_src: true
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: verify bash is vulnerable
+  shell: env x='() { :;}; echo vulnerable' bash_shellshock -c "echo this is a test"
+  args:
+    executable: /bin/bash_shellshock
+  register: shell_output
+  changed_when: false
+
+- fail:
+    msg: Bash in not vulnerable
+  when: '"vulnerable" not in shell_output.stdout'
