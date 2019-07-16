@@ -19,9 +19,7 @@ trap ctrl_c INT
 
 function echo_cmd() {
     # Print and execute command
-    echo -e "${BLUE}$@${NC}"
-    read trash
-    "$@"
+    (set -x; "$@")
 
     # Wait to continue
     echo
