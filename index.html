@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+
+	<title>Make SELinux Enabled Again</title>
+
+	<meta name="description" content="Talk on SELinux">
+	<meta name="author" content="Garrett Hyde">
+
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="css/reset.css">
+	<link rel="stylesheet" href="css/reveal.css">
+	<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+	<!-- Theme used for syntax highlighting of code -->
+	<link rel="stylesheet" href="lib/css/monokai.css">
+
+	<!-- Printing and PDF exports -->
+	<script>
+		var link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.type = 'text/css';
+		link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+		document.getElementsByTagName('head')[0].appendChild(link);
+	</script>
+
+	<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+</head>
+
+<body>
+
+	<div class="reveal">
+		<div class="slides">
+
+			<!-- Title Slide -->
+			<section data-background-color="#e00">
+				<h1>Make SELinux<br />
+					Enabled Again</h1>
+			</section>
+
+			<!-- Introduction -->
+			<section>
+				<h1>About Me</h1>
+				<ul>
+					<li>Linux System Administrator</li>
+					<li>Python Developer</li>
+					<li>Information Security Engineer</li>
+					<li>Open Source Advocate</li>
+				</ul>
+			</section>
+
+			<!-- Intro to SELinux -->
+			<section>
+				<section>
+					<h2>What Is SELinux?</h2>
+					<blockquote cite="https://en.wikipedia.org/wiki/Security-Enhanced_Linux">
+						&ldquo;Security-Enhanced Linux (SELinux) is a Linux kernel security
+						module that provides a mechanism for supporting access control security
+						policies, including United States Department of Defense–style mandatory
+						access controls (MAC).&rdquo;
+					</blockquote>
+				</section>
+
+				<section>
+					<h3>It's a labeling system</h3>
+				</section>
+
+				<section>
+					<h1>Coloring Book</h1>
+				</section>
+			</section>
+
+			<section>
+				<section>
+					<h1>Commands</h1>
+				</section>
+
+				<section>
+					<h3>SELinux Modes</h3>
+					<ol>
+						<li>enforcing - SELinux security policy is enforced</li>
+						<li>permissive - SELinux prints warnings instead of enforcing</li>
+						<li class="fragment fade-out">disabled - No SELinux policy is loaded</li>
+					</ol>
+				</section>
+
+				<section>
+					<h3>Change Settings</h3>
+					<q>If at first you don't succeed, put SELinux in permissive mode.</q>
+					<pre class="fragment"><code data-trim contenteditable class="no-highlight">
+$ sudo setenforce [ Enforcing | Permissive | 1 | 0 ]
+
+$ getenforce
+					</code></pre>
+					<pre class="fragment"><code data-trim contenteditable class="no-highlight">
+/etc/selinux/config
+					</code></pre>
+				</section>
+
+				<section>
+					<h3>When Should I Disable SELinux?</h3>
+				</section>
+
+				<section data-background-iframe="https://stopdisablingselinux.com/" data-background-interactive>
+				</section>
+
+				<section>
+					<a href="https://stopdisablingselinux.com/">https://stopdisablingselinux.com/</a>
+				</section>
+
+				<section>
+					<h3>View Labels</h3>
+					<pre class="fragment"><code data-trim contenteditable class="no-highlight">
+$ ls -Z
+					</code></pre>
+					<pre class="fragment"><code data-trim contenteditable class="no-highlight">
+$ restorecon [-R]
+					</code></pre>
+				</section>
+
+				<section>
+					<h3>SELinux Booleans</h3>
+					<pre class="fragment"><code data-trim contenteditable class="no-highlight">
+# sestatus -b | grep -i httpd
+...
+httpd_can_sendmail                          off
+					</code></pre>
+					<pre class="fragment"><code data-trim contenteditable class="no-highlight">
+# setsebool -P httpd_can_sendmail 1
+					</code></pre>
+				</section>
+
+				<section>
+					<h3>Custom SELinux Modules</h3>
+					<pre class="fragment"><code data-trim contenteditable class="no-highlight">
+# audit2allow -w -a
+					</code></pre>
+					<pre class="fragment"><code data-trim contenteditable class="no-highlight">
+# grep $MATCH /var/log/audit/audit.log | \
+  audit2allow -R -M mymodule
+# semodule -i mymodule.pp
+					</code></pre>
+				</section>
+
+			</section>
+
+			<!-- Resources -->
+			<section>
+				<section>
+					<h1>Resources</h1>
+				</section>
+
+				<section>
+					<h3>Documentation</h3>
+					<ul>
+						<li><a href="https://people.redhat.com/duffy/selinux/selinux-coloring-book_A4-Stapled.pdf">
+								Coloring Book</a></li>
+						<li><a
+								href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/selinux_users_and_administrators_guide/index">
+								SELinux User's and Administrator's Guide (Red Hat)</a></li>
+					</ul>
+				</section>
+
+				<section>
+					<h3>Videos</h3>
+					<ul>
+						<li><a href="https://www.youtube.com/watch?v=_WOKRaM-HI4">
+								Security-Enhanced Linux for mere mortals</a></li>
+						<li><a href="https://www.youtube.com/watch?v=Wv9kwlabdlo">
+								Are you listening to what SELinux is telling you?</a></li>
+						<li><a href="https://www.youtube.com/watch?v=nv3b6eZskeA">
+								Deploying SELinux successfully in production environments</a></li>
+					</ul>
+				</section>
+			</section>
+
+			<section>
+				<h1>Questions?</h1>
+			</section>
+
+		</div>
+
+	</div>
+
+	<script src="js/reveal.js"></script>
+
+	<script>
+
+		// More info https://github.com/hakimel/reveal.js#configuration
+		Reveal.initialize({
+			controls: true,
+			progress: true,
+			center: true,
+			hash: true,
+
+			transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+			// More info https://github.com/hakimel/reveal.js#dependencies
+			dependencies: [
+				{ src: 'plugin/markdown/marked.js', condition: function () { return !!document.querySelector('[data-markdown]'); } },
+				{ src: 'plugin/markdown/markdown.js', condition: function () { return !!document.querySelector('[data-markdown]'); } },
+				{ src: 'plugin/highlight/highlight.js', async: true },
+				{ src: 'plugin/search/search.js', async: true },
+				{ src: 'plugin/zoom-js/zoom.js', async: true },
+				{ src: 'plugin/notes/notes.js', async: true }
+			]
+		});
+
+	</script>
+
+</body>
+
+</html>
