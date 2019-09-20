@@ -58,7 +58,6 @@ Vagrant.configure("2") do |config|
     web.vm.synced_folder ".vagrant", "/home/vagrant/.hidden", type: sync_type
 
     ansible_groups = {
-      web: ["web"],
       'all:vars': {
         ansible_become: true,
         ansible_ssh_user: 'vagrant',
